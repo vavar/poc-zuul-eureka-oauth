@@ -1,0 +1,86 @@
+version: '3'
+
+services:
+  zuul-gateway:
+    build: 
+      context: './zuul-gateway'
+    ports:
+      - 8080:8080
+    depends_on:
+      - eureka-1
+    environment:
+      - SERVER_PORT=8080
+      - SPRING_APPLICATION_NAME=zuul-gateway
+      - SPRING_ACTIVE_PROFILES=dev
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - SERVICE_URL_DEFAULT_ZONE=http://eureka-1:8761/eureka/
+      - OAUTH_SERVER_URL=http://authorization-server:8080/oauth/check_token
+      - ZUUL_ROUTES_TOKEN_URL=http://authorization-server:8080
+  # opa:
+  #   image: openpolicyagent/opa:0.23.1
+  #   ports:
+  #     - 8181:8181
+  #   command:
+  #     - run
+  #     - --server
+  #     - --log-level=debug
+  authorization-server:
+    build:
+      context: './authorization-server'
+    image: authorization-server
+    expose:
+      - "8080"
+    ports:
+      - 8081:8080
+    depends_on:
+      - eureka-1
+    environment:
+      - SERVER_PORT=8080
+      - SPRING_APPLICATION_NAME=authorization-server
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - SERVICE_URL_DEFAULT_ZONE=http://eureka-1:8761/eureka/
+  resource-server-1:
+    build:
+      context: './resource-server'
+    image: resource-server
+    expose:
+      - "8080"
+    ports:
+      - 8082:8080
+    depends_on:
+      - eureka-1
+    environment:
+      - SERVER_PORT=8080
+      - SPRING_APPLICATION_NAME=resource-server
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - SERVICE_URL_DEFAULT_ZONE=http://eureka-1:8761/eureka/
+  resource-aud-server:
+    build:
+      context: './resource-aud-server'
+    image: resource-aud-server
+    expose:
+      - "8080"
+    ports:
+      - 8083:8080
+    depends_on:
+      - eureka-1
+    environment:
+      - SERVER_PORT=8080
+      - SPRING_APPLICATION_NAME=resource-aud-server
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - SERVICE_URL_DEFAULT_ZONE=http://eureka-1:8761/eureka/
+  eureka-1:
+    build:
+      context: './eureka-server'
+    image: eureka-server
+    expose:
+      - "8761"
+    ports:
+      - 8761:8761
+    environment:
+      - SPRING_APPLICATION_NAME=eureka-1
+      - EUREKA_ENVIRONMENT=production

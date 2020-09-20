@@ -1,0 +1,44 @@
+server:
+  port: 8080
+  use-forward-headers: true 
+
+spring:
+  application:
+    name: poc-zuul-gateway
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${SERVICE_URL_DEFAULT_ZONE:http://localhost:8761/eureka}
+
+zuul:
+  debug:
+    request: true
+  host:
+    socket-timeout-millis: 60000
+  add-host-header: true
+  add-proxy-headers: true
+  sensitive-headers: Cookie,Set-Cookie
+#  Uncomment to disable auto-registering all services read from Eureka
+#  ignoredServices: '*'
+  routes:
+    oauth:
+      path: /oauth/**
+      url: http://authorization-server:8080/oauth
+    resource-serviceA:
+      path: /resource/**
+      url: http://resource-server:8080
+    resource-serviceB:
+      path: /resource-aud/**
+      url: http://resource-aud-server:8080
+
+    v1-stm:
+      path: /v1/policy/
+      url: http://resource-aud-server:8080
+
+security:
+  oauth2:
+    resource:
+      id: api-gateway
+      jwt:
+        key-value: 123
